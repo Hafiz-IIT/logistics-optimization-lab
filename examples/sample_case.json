@@ -1,0 +1,16 @@
+{
+  "start": "warehouse",
+  "goal": "port",
+  "weights": {
+    "cost": 1,
+    "time": 1,
+    "risk": 2
+  },
+  "expected_output": [
+    "path",
+    "cost",
+    "time",
+    "risk",
+    "objective"
+  ]
+}
