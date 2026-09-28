@@ -42,3 +42,7 @@ Current tests verify objective-sensitive route changes and unreachable cases; fu
 
 ## License
 MIT.
+
+## Extended implementation
+
+- `pareto_routes.py` enumerates simple routes and filters the Pareto frontier across cost, time, and risk.
