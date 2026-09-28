@@ -1,27 +1,15 @@
 # Logistics Optimization Lab
 
-> **A transparent multi-objective routing sandbox for cost, time, and operational risk.**
+> Multi-objective logistics routing sandbox balancing monetary cost, travel time and operational risk.
 
-EXIM/logistics decisions rarely optimize one scalar. Routes trade transport cost, transit time, disruption risk, and operational constraints. This repository provides an inspectable graph baseline before adding learned or real-data methods.
+## Status
+**Reproducible simulation/research prototype** with tests, CI, architecture, evaluation and roadmap documentation.
 
-## Implemented
-- weighted logistics graph
-- bidirectional edge support
-- cost/time/risk edge attributes
-- configurable objective weights
-- Dijkstra routing
-- route reconstruction
-- component totals
-- no-route handling
+## Problem
+Operational routing rarely optimizes one metric. Cost, time and risk compete, and route choice should be explainable when priorities change.
 
-## Repository map
-- `logistics_optimization_lab.py` — core implementation
-- `tests/` — deterministic tests
-- `examples/` — sample case
-- `docs/architecture.md` — architecture
-- `docs/research-agenda.md` — experiments + research lineage
-- `STATUS.md` — claims boundary
-- `CITATION.cff` — citation metadata
+## Architecture
+Weighted logistics graph → cost/time/risk edge attributes → configurable objective weights → shortest-path solver → path plus component totals.
 
 ## Run
 ```bash
@@ -29,14 +17,28 @@ python -m unittest discover -s tests -v
 python logistics_optimization_lab.py
 ```
 
-## Pipeline
-**network → objective weights → edge score → shortest-path search → route → cost/time/risk explanation**
+## Implemented
+- Weighted graph model
+- Bidirectional edge support
+- Cost/time/risk objective
+- Dijkstra routing
+- Route component totals
+- No-route handling
+- Tests and CI
 
 ## Research lineage
-This consolidates older smart-logistics, cargo-routing, scheduling, cost-optimization, and port/logistics capstone themes into one defensible algorithmic lab.
+- *Smart Urban Infrastructures: AI-Enabled City Optimization*
+- *AI for Climate Change: Modeling Micro-Level Energy Efficiency*
+- *Bridging Classical Control and Modern AI: A Unified Framework for Automated Agents*
 
-## Evaluation direction
-Benchmark how selected paths change across objective weights, network disruption, and risk penalties; later compare against Pareto-frontier or constrained optimization methods.
+## Evaluation
+Current tests verify objective-sensitive route changes and unreachable cases; future work adds stochastic and constrained routing.
 
-## Maturity
-**Research prototype.** Synthetic network only. No real fleet telemetry, carrier rates, map API, customs timings, or production dispatch is claimed.
+## Limitations
+- Synthetic graph only
+- No live maps/traffic
+- Single-vehicle path problem
+- No time windows or capacity constraints yet
+
+## License
+MIT.
