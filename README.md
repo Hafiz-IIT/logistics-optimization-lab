@@ -1,48 +1,47 @@
 # Logistics Optimization Lab
 
-> Multi-objective logistics routing sandbox balancing monetary cost, travel time and operational risk.
+<p align="center"><strong>Routing Under Cost, Time and Risk Trade-offs</strong><br/><sub>A transparent multi-objective logistics simulation laboratory.</sub></p>
 
-## Status
-**Reproducible simulation/research prototype** with tests, CI, architecture, evaluation and roadmap documentation.
+<p align="center"><img src="https://img.shields.io/badge/status-reproducible%20simulation-blue" alt="Simulation"/> <img src="https://img.shields.io/badge/objectives-cost%20%7C%20time%20%7C%20risk-orange" alt="Objectives"/></p>
 
-## Problem
-Operational routing rarely optimizes one metric. Cost, time and risk compete, and route choice should be explainable when priorities change.
+## Question
 
-## Architecture
-Weighted logistics graph → cost/time/risk edge attributes → configurable objective weights → shortest-path solver → path plus component totals.
+**What happens when the “best” logistics route depends on which operational objective matters most?**
 
-## Run
-```bash
-python -m unittest discover -s tests -v
-python logistics_optimization_lab.py
+```
+Network
+ ↓
+edge cost + time + risk
+ ↓
+objective / Pareto analysis
+ ↓
+candidate routes
+ ↓
+trade-off decision
 ```
 
+## Try it
+
+```bash
+python logistics_optimization_lab.py
+python -m unittest discover -s tests -v
+```
+
+The second-stage `pareto_routes.py` exposes non-dominated routes rather than collapsing everything into one arbitrary weight.
+
 ## Implemented
-- Weighted graph model
-- Bidirectional edge support
-- Cost/time/risk objective
-- Dijkstra routing
-- Route component totals
-- No-route handling
-- Tests and CI
 
-## Research lineage
-- *Smart Urban Infrastructures: AI-Enabled City Optimization*
-- *AI for Climate Change: Modeling Micro-Level Energy Efficiency*
-- *Bridging Classical Control and Modern AI: A Unified Framework for Automated Agents*
+- weighted logistics graph
+- bidirectional edges
+- cost/time/risk objectives
+- Dijkstra baseline
+- route component totals
+- Pareto-front analysis
+- no-route handling
+- deterministic CI
 
-## Evaluation
-Current tests verify objective-sensitive route changes and unreachable cases; future work adds stochastic and constrained routing.
+## Research boundary
 
-## Limitations
-- Synthetic graph only
-- No live maps/traffic
-- Single-vehicle path problem
-- No time windows or capacity constraints yet
+This is a simulation laboratory. It does not claim optimization of a real carrier, port or fleet.
 
-## License
-MIT.
-
-## Extended implementation
-
-- `pareto_routes.py` enumerates simple routes and filters the Pareto frontier across cost, time, and risk.
+Related: [Port Operations Simulator](https://github.com/Hafiz-IIT/port-operations-simulator) · [Multi-Agent Logistics Simulator](https://github.com/Hafiz-IIT/multi-agent-logistics-sim) · [Traffic Incident Routing Lab](https://github.com/Hafiz-IIT/traffic-incident-routing-lab)
