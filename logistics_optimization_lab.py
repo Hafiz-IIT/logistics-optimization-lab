@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import heapq
-from math import inf
+from math import inf, isfinite
 
 
 @dataclass(frozen=True)
@@ -18,13 +18,28 @@ class LogisticsGraph:
     def __init__(self):
         self.adj: dict[str, list[Edge]] = {}
 
-    def add_edge(self, a: str, b: str, *, cost: float, time: float, risk: float = 0.0, bidirectional: bool = True) -> None:
-        self.adj.setdefault(a, []).append(Edge(b, cost, time, risk))
+    def add_edge(
+        self, a: str, b: str, *, cost: float, time: float,
+        risk: float = 0.0, blocked: bool = False, bidirectional: bool = True,
+    ) -> None:
+        if any(not isinstance(node, str) or not node.strip() for node in (a, b)):
+            raise ValueError("edge endpoints must be non-empty strings")
+        if any(not isfinite(value) or value < 0 for value in (cost, time, risk)):
+            raise ValueError("cost, time and risk must be finite and non-negative")
+        if not isinstance(blocked, bool) or not isinstance(bidirectional, bool):
+            raise ValueError("blocked and bidirectional must be booleans")
+        self.adj.setdefault(a, []).append(Edge(b, float(cost), float(time), float(risk), blocked))
         if bidirectional:
-            self.adj.setdefault(b, []).append(Edge(a, cost, time, risk))
+            self.adj.setdefault(b, []).append(Edge(a, float(cost), float(time), float(risk), blocked))
 
     def route(self, start: str, goal: str, *, cost_weight: float = 1.0, time_weight: float = 1.0, risk_weight: float = 1.0):
+        if any(not isinstance(node, str) or not node.strip() for node in (start, goal)):
+            raise ValueError("route endpoints must be non-empty strings")
         weights = (cost_weight, time_weight, risk_weight)
+        if any(not isfinite(weight) or weight < 0 for weight in weights):
+            raise ValueError("objective weights must be finite and non-negative")
+        if start == goal:
+            return {"path": [start], "objective": 0.0, "cost": 0.0, "time": 0.0, "risk": 0.0}
         q = [(0.0, start)]
         dist = {start: 0.0}
         prev: dict[str, tuple[str, Edge]] = {}
