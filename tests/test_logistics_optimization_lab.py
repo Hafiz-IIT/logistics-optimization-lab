@@ -45,6 +45,15 @@ class LogisticsOptimizationTests(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     g.route("A", "B", risk_weight=value)
 
+    def test_oversized_integer_weights_are_rejected_cleanly(self):
+        huge = 10 ** 10000
+        with self.assertRaises(ValueError):
+            LogisticsGraph().add_edge("A", "B", cost=huge, time=1)
+        graph = LogisticsGraph()
+        graph.add_edge("A", "B", cost=1, time=1)
+        with self.assertRaises(ValueError):
+            graph.route("A", "B", cost_weight=huge)
+
     def test_start_equals_goal_returns_zero_cost_route(self):
         self.assertEqual(
             LogisticsGraph().route("A", "A"),
