@@ -2,7 +2,19 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import heapq
-from math import inf
+from math import inf, isfinite
+
+
+def _finite_nonnegative(name: str, value: float) -> float:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError(f"{name} must be a finite non-negative number")
+    try:
+        normalized = float(value)
+    except (OverflowError, TypeError, ValueError) as exc:
+        raise ValueError(f"{name} must be a finite non-negative number") from exc
+    if not isfinite(normalized) or normalized < 0:
+        raise ValueError(f"{name} must be a finite non-negative number")
+    return normalized
 
 
 @dataclass(frozen=True)
@@ -13,18 +25,44 @@ class Edge:
     risk: float = 0.0
     blocked: bool = False
 
+    def __post_init__(self):
+        if not isinstance(self.to, str) or not self.to.strip():
+            raise ValueError("destination must be a non-empty string")
+        _finite_nonnegative("cost", self.cost)
+        _finite_nonnegative("time", self.time)
+        _finite_nonnegative("risk", self.risk)
+        if not isinstance(self.blocked, bool):
+            raise ValueError("blocked must be boolean")
+
 
 class LogisticsGraph:
     def __init__(self):
         self.adj: dict[str, list[Edge]] = {}
 
-    def add_edge(self, a: str, b: str, *, cost: float, time: float, risk: float = 0.0, bidirectional: bool = True) -> None:
-        self.adj.setdefault(a, []).append(Edge(b, cost, time, risk))
+    def add_edge(
+        self, a: str, b: str, *, cost: float, time: float,
+        risk: float = 0.0, blocked: bool = False, bidirectional: bool = True,
+    ) -> None:
+        if any(not isinstance(node, str) or not node.strip() for node in (a, b)):
+            raise ValueError("edge endpoints must be non-empty strings")
+        cost = _finite_nonnegative("cost", cost)
+        time = _finite_nonnegative("time", time)
+        risk = _finite_nonnegative("risk", risk)
+        if not isinstance(blocked, bool) or not isinstance(bidirectional, bool):
+            raise ValueError("blocked and bidirectional must be booleans")
+        self.adj.setdefault(a, []).append(Edge(b, float(cost), float(time), float(risk), blocked))
         if bidirectional:
-            self.adj.setdefault(b, []).append(Edge(a, cost, time, risk))
+            self.adj.setdefault(b, []).append(Edge(a, float(cost), float(time), float(risk), blocked))
 
     def route(self, start: str, goal: str, *, cost_weight: float = 1.0, time_weight: float = 1.0, risk_weight: float = 1.0):
+        if any(not isinstance(node, str) or not node.strip() for node in (start, goal)):
+            raise ValueError("route endpoints must be non-empty strings")
         weights = (cost_weight, time_weight, risk_weight)
+        weights = tuple(_finite_nonnegative(name, weight) for name, weight in zip(
+            ("cost_weight", "time_weight", "risk_weight"), weights
+        ))
+        if start == goal:
+            return {"path": [start], "objective": 0.0, "cost": 0.0, "time": 0.0, "risk": 0.0}
         q = [(0.0, start)]
         dist = {start: 0.0}
         prev: dict[str, tuple[str, Edge]] = {}
@@ -40,6 +78,8 @@ class LogisticsGraph:
                     continue
                 edge_score = weights[0] * edge.cost + weights[1] * edge.time + weights[2] * edge.risk
                 new = score + edge_score
+                if not isfinite(edge_score) or not isfinite(new):
+                    raise OverflowError("route objective is outside finite numeric range")
                 if new < dist.get(edge.to, inf):
                     dist[edge.to] = new
                     prev[edge.to] = (node, edge)
@@ -56,6 +96,8 @@ class LogisticsGraph:
             totals["cost"] += edge.cost
             totals["time"] += edge.time
             totals["risk"] += edge.risk
+            if not all(isfinite(value) for value in totals.values()):
+                raise OverflowError("route totals are outside finite numeric range")
             path.append(parent)
             cur = parent
         path.reverse()
