@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import heapq
-from math import inf
+from math import inf, isfinite
 
 
 @dataclass(frozen=True)
@@ -18,13 +18,28 @@ class LogisticsGraph:
     def __init__(self):
         self.adj: dict[str, list[Edge]] = {}
 
-    def add_edge(self, a: str, b: str, *, cost: float, time: float, risk: float = 0.0, bidirectional: bool = True) -> None:
-        self.adj.setdefault(a, []).append(Edge(b, cost, time, risk))
+    @staticmethod
+    def _validate_nonnegative(name: str, value: float) -> None:
+        if not isfinite(float(value)) or value < 0:
+            raise ValueError(f"{name} must be finite and non-negative")
+
+    def add_edge(self, a: str, b: str, *, cost: float, time: float, risk: float = 0.0,
+                 bidirectional: bool = True, blocked: bool = False) -> None:
+        if not isinstance(a, str) or not a.strip() or not isinstance(b, str) or not b.strip():
+            raise ValueError("edge endpoints must be non-empty strings")
+        self._validate_nonnegative("cost", cost)
+        self._validate_nonnegative("time", time)
+        self._validate_nonnegative("risk", risk)
+        self.adj.setdefault(a, []).append(Edge(b, cost, time, risk, blocked))
         if bidirectional:
-            self.adj.setdefault(b, []).append(Edge(a, cost, time, risk))
+            self.adj.setdefault(b, []).append(Edge(a, cost, time, risk, blocked))
 
     def route(self, start: str, goal: str, *, cost_weight: float = 1.0, time_weight: float = 1.0, risk_weight: float = 1.0):
+        if not isinstance(start, str) or not start.strip() or not isinstance(goal, str) or not goal.strip():
+            raise ValueError("start and goal must be non-empty strings")
         weights = (cost_weight, time_weight, risk_weight)
+        for name, weight in zip(("cost_weight", "time_weight", "risk_weight"), weights):
+            self._validate_nonnegative(name, weight)
         q = [(0.0, start)]
         dist = {start: 0.0}
         prev: dict[str, tuple[str, Edge]] = {}
